@@ -2,3 +2,5 @@
 homeworks/*/.DS_Storee
 *.DS_Store
 ~$*.xlsx
+/.ipynb_checkpoint
+*.ipynb
