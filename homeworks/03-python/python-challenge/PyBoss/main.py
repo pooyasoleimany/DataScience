@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime, time, date
 # ## Option 3: PyBoss
 
 # ![Boss](Images/boss.jpg)
@@ -88,6 +89,8 @@ class Converter:
     #     columns.
 
     #   * The `DOB` data should be re-written into `DD/MM/YYYY` format.
+    def reformat_date(self, date):
+        return datetime.strptime(date, "%Y-%m-%d").strftime("%m/%d/%Y")
 
     #   * The `SSN` data should be re-written such that the first five numbers are 
     #     hidden from view.
@@ -109,6 +112,8 @@ class TestConverter(unittest.TestCase):
         self.assertEqual('***-**-1234',Converter().obfuscate_ssn('123-12-1234'))
     def test_get_state_abbrevation(self):
         self.assertEqual('CA',Converter().get_state_abbrevation('California'))
+    def test_reformat_date(self):
+        self.assertEqual('12/20/1957',Converter().reformat_date('1957-12-20'))
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
