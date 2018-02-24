@@ -1,4 +1,5 @@
 import sys
+import csv
 from datetime import datetime, time, date
 # ## Option 3: PyBoss
 
@@ -29,6 +30,29 @@ from datetime import datetime, time, date
 # 15,       Samantha,       Lara,0      9/08/1993,  ***-**-7526,    CO
 # 411,      Stacy,          Charles,    12/20/1957, ***-**-8526,    PA
 # ```
+class InputDto:
+    def __init__(self, emp_id, name, dob, ssn, state):
+        self.emp_id = emp_id
+        self.name =name
+        self.dob = dob
+        self.ssn = ssn
+        self.state = state
+
+class ReadDateLayer:
+    def __init__(self, file_name):
+        self._file_name = file_name
+    def read(self):
+        with open(self._file_name, 'r') as file:
+            reader = csv.reader(file, delimiter = ',', quotechar = '|')
+            next(reader)
+            for row in reader:
+                yield InputDto(
+                    row[0],
+                    row[1],
+                    row[2],
+                    row[3],
+                    row[4]
+                )
 
 class Converter:
     _us_state_abbrev = {
@@ -87,6 +111,8 @@ class Converter:
 
     #   * The `Name` column should be split into separate `First Name` and `Last Name` 
     #     columns.
+    def split_name(self, full_name):
+        return full_name.split(' ')
 
     #   * The `DOB` data should be re-written into `DD/MM/YYYY` format.
     def reformat_date(self, date):
@@ -114,6 +140,14 @@ class TestConverter(unittest.TestCase):
         self.assertEqual('CA',Converter().get_state_abbrevation('California'))
     def test_reformat_date(self):
         self.assertEqual('12/20/1957',Converter().reformat_date('1957-12-20'))
+    def test_split_name(self):
+        self.assertEqual(['Pooya', 'Soleimany'],Converter().split_name('Pooya Soleimany'))
+
+class TestReadDateLayer(unittest.TestCase):
+    def test_read(self):
+        readDataLayer = ReadDateLayer("/Users/pooya/Documents/DataScienceCource/homeworks/03-python/Instructions/PyBoss/raw_data/employee_data1.csv")
+        first = next(readDataLayer.read())
+        self.assertNotEqual(None, first)
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
