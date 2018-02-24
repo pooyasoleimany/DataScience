@@ -1,3 +1,4 @@
+import sys
 # ## Option 3: PyBoss
 
 # ![Boss](Images/boss.jpg)
@@ -91,10 +92,26 @@ class Converter:
     #   * The `SSN` data should be re-written such that the first five numbers are 
     #     hidden from view.
     def obfuscate_ssn(self, ssn):
-        "***-**-" + ssn.rpartition('-')[2]
+        return "***-**-{}".format(ssn.rpartition('-')[2])
 
     #   * The `State` data should be re-written as simple two-letter abbreviations.    
     # * Special Hint: You may find this link to be helpful—[Python Dictionary for State 
     #   Abbreviations](https://gist.github.com/afhaque/29f0f4f37463c447770517a6c17d08f5).
     def get_state_abbrevation(self, state_name):
         return Converter._us_state_abbrev[state_name]
+
+def Main():
+    pass
+
+import unittest
+class TestConverter(unittest.TestCase):
+    def test_obfuscate_ssn(self):
+        self.assertEqual('***-**-1234',Converter().obfuscate_ssn('123-12-1234'))
+    def test_get_state_abbrevation(self):
+        self.assertEqual('CA',Converter().get_state_abbrevation('California'))
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        unittest.main()
+    else:
+        Main()
