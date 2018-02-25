@@ -13,14 +13,20 @@ class BuddgetData:
     def __str__(self):return str.format("{} (${})", self.Date, self.Revenue)
 
 class BuddgetDataLayer:
-    def __init__(self, fileAddress):
-        self._fileAddress = fileAddress
+    def __init__(self, source_file_address, result_file_address):
+        self._source_file_address = source_file_address
+        self._result_file_address = result_file_address
     def GetBuddgetData(self):
-        with open(self._fileAddress, 'r') as file:
+        with open(self._source_file_address, 'r') as file:
             reader = csv.reader(file, delimiter = ',', quotechar = '|')
             next(reader)
             for row in reader:
                 yield BuddgetData(row[0], int(row[1]))
+    def WriteTheResults(self, data):
+        with open(self._result_file_address, 'w') as file:
+            file.write(data)
+
+
 
 # Your task is to create a Python script that analyzes the records to calculate 
 # each of the following:
@@ -67,7 +73,7 @@ class FinancialAnalyser:
 
         self.AverageRevenueChange = 0 if self.TotalMonths <= 1 else revenueChangeSum / (self.TotalMonths - 1)
 
-    def __str__(self): 
+    def get_report(self): 
         return (
             "Total Months: {} \n" + 
             "Total Revenue: {}\n" + 
@@ -86,11 +92,13 @@ class FinancialAnalyser:
 # the future (your boss is going to give you more of these -- so your script has to 
 # work for the ones to come). In addition, your final script should both print the 
 # analysis to the terminal and export a text file with the results.
-def Main(fileName):
-    print ("File name : " + fileName)
-    dataLayer = BuddgetDataLayer(fileName)
-    analizer = FinancialAnalyser(dataLayer)
-    print(analizer)
+def main(source_file_name, result_file_name):
+    print ("File name : " + source_file_name)
+    data_layer = BuddgetDataLayer(source_file_name, result_file_name)
+    analizer = FinancialAnalyser(data_layer)
+    results = analizer.get_report()
+    print(results)
+    data_layer.WriteTheResults(results)
 
 if __name__ == '__main__':
-    Main(str(sys.argv[1]))
+    main(str(sys.argv[1]), str(sys.argv[2]))
