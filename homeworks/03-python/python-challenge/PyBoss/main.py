@@ -1,5 +1,6 @@
 import sys
 import csv
+import os
 from datetime import datetime, time, date
 # ## Option 3: PyBoss
 
@@ -30,30 +31,6 @@ from datetime import datetime, time, date
 # 15,       Samantha,       Lara,0      9/08/1993,  ***-**-7526,    CO
 # 411,      Stacy,          Charles,    12/20/1957, ***-**-8526,    PA
 # ```
-class InputDto:
-    def __init__(self, emp_id, name, dob, ssn, state):
-        self.emp_id = emp_id
-        self.name =name
-        self.dob = dob
-        self.ssn = ssn
-        self.state = state
-
-class ReadDateLayer:
-    def __init__(self, file_name):
-        self._file_name = file_name
-    def read(self):
-        with open(self._file_name, 'r') as file:
-            reader = csv.reader(file, delimiter = ',', quotechar = '|')
-            next(reader)
-            for row in reader:
-                yield InputDto(
-                    row[0],
-                    row[1],
-                    row[2],
-                    row[3],
-                    row[4]
-                )
-
 class Converter:
     _us_state_abbrev = {
         'Alabama': 'AL',
@@ -129,9 +106,56 @@ class Converter:
     def get_state_abbrevation(self, state_name):
         return Converter._us_state_abbrev[state_name]
 
-def Main():
-    pass
+class Employee:
+    converter = Converter()
+    def __init__(self, emp_id, name, dob, ssn, state):
+        self.emp_id = emp_id
+        parts = Employee.converter.split_name(name)
+        self.first_name = parts[0]
+        self.last_name = parts[1]
+        self.dob = Employee.converter.reformat_date(dob)
+        self.ssn = Employee.converter.obfuscate_ssn(ssn)
+        self.state = Employee.converter.get_state_abbrevation(state)
 
+class DateLayer:
+    def __init__(self, read_file_name, write_file_name):
+        self.read_file_name = read_file_name
+        self.write_file_name = write_file_name
+    def read(self):
+        with open(self.read_file_name, 'r') as file:
+            reader = csv.reader(file, delimiter = ',', quotechar = '|')
+            next(reader)
+            for row in reader:
+                yield Employee(
+                    row[0],
+                    row[1],
+                    row[2],
+                    row[3],
+                    row[4]
+                )
+    def write(self, employees):
+        file = open(self.write_file_name, 'w', newline="") 
+        with file:
+            writer = csv.writer(file, delimiter = ',', quotechar = '|')
+            writer.writerow(['Emp ID','First Name','Last Name','DOB','SSN','State'])
+            for row in employees:
+                writer.writerow(
+                    [
+                        row.emp_id,
+                        row.first_name,
+                        row.last_name,
+                        row.dob,
+                        row.ssn,
+                        row.state
+                    ]
+                )
+
+def main(read_file_path, write_file_name):
+    data_layer = DateLayer(str(read_file_path), str(write_file_name))
+    items = data_layer.read()
+    data_layer.write(items)
+
+# Unit tests:
 import unittest
 class TestConverter(unittest.TestCase):
     def test_obfuscate_ssn(self):
@@ -142,15 +166,27 @@ class TestConverter(unittest.TestCase):
         self.assertEqual('12/20/1957',Converter().reformat_date('1957-12-20'))
     def test_split_name(self):
         self.assertEqual(['Pooya', 'Soleimany'],Converter().split_name('Pooya Soleimany'))
-
-class TestReadDateLayer(unittest.TestCase):
+class TestDateLayer(unittest.TestCase):
+    directory = '../../Instructions/PyBoss/raw_data/'
+    data_layer = DateLayer(
+        os.path.join(directory,'employee_data1.csv'),
+        os.path.join(directory,'employee_data1_new_test.csv')
+    )
     def test_read(self):
-        readDataLayer = ReadDateLayer("/Users/pooya/Documents/DataScienceCource/homeworks/03-python/Instructions/PyBoss/raw_data/employee_data1.csv")
-        first = next(readDataLayer.read())
-        self.assertNotEqual(None, first)
+        try:
+            first = next(TestDateLayer.data_layer.read())
+            self.assertNotEqual(None, first)
+        except IOError as e:
+            print(e)
+    def test_write(self):
+        try:
+            items = TestDateLayer.data_layer.read()
+            TestDateLayer.data_layer.write(items)
+        except IOError as e:
+            print(e)
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         unittest.main()
     else:
-        Main()
+        main(sys.argv[1], sys.argv[2])
