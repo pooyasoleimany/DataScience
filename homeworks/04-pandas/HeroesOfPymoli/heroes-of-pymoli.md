@@ -7,7 +7,7 @@ The data dive continues!
 
 ## Option 1: Heroes of Pymoli
 
-![Fantasy](Images/Fantasy.jpg)
+![Fantasy](../Images/Fantasy.jpg)
 
 Congratulations! After a lot of hard work in the data munging mines, you've landed a job as Lead Analyst for an independent gaming company. You've been assigned the task of analyzing the data for their most recent fantasy game Heroes of Pymoli. 
 
@@ -18,7 +18,7 @@ Like many others in its genre, the game is free-to-play, but players are encoura
 !pwd
 ```
 
-    /Users/pooya/Documents/DataScienceCource/homeworks/04-pandas
+    /Users/pooya/Documents/DataScienceCource/homeworks/04-pandas/HeroesOfPymoli
 
 
 
@@ -31,8 +31,8 @@ import numpy as np
 
 
 ```python
-path = "./HeroesOfPymoli/purchase_data.json"
-#path = "./HeroesOfPymoli/purchase_data2.json"
+path = "./purchase_data.json"
+#path = "./purchase_data2.json"
 ```
 
 
@@ -485,10 +485,9 @@ purchase_data.head()
 ```python
 age_groups = purchase_data[["Age Tier", "SN", "Price"]].groupby(["Age Tier"])
 age_groups_stats = age_groups.agg({"Price" : ["count", "mean", "sum"]})
-age_groups_stats["Normalized Totals"] = age_groups_stats[("Price","sum")] / total_revenue
-age_groups_stats = age_groups_stats.reset_index(level=None)
-age_groups_stats.columns = ["Age Range", "Purchase Count", "Average Spent", "Total Spent", "Normalized Totals"]
-age_groups_stats
+age_groups_stats.columns = ["Purchase Count", "Average Spent", "Total Spent"]
+age_groups_stats["Normalized Totals"] = age_groups_stats["Total Spent"] / age_groups_stats["Total Spent"].sum()
+age_groups_stats.reset_index()
 ```
 
 
@@ -512,7 +511,7 @@ age_groups_stats
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>Age Range</th>
+      <th>Age Tier</th>
       <th>Purchase Count</th>
       <th>Average Spent</th>
       <th>Total Spent</th>
@@ -526,7 +525,7 @@ age_groups_stats
       <td>32</td>
       <td>3.019375</td>
       <td>96.62</td>
-      <td>0.423586</td>
+      <td>0.042260</td>
     </tr>
     <tr>
       <th>1</th>
@@ -534,7 +533,7 @@ age_groups_stats
       <td>31</td>
       <td>2.702903</td>
       <td>83.79</td>
-      <td>0.367339</td>
+      <td>0.036648</td>
     </tr>
     <tr>
       <th>2</th>
@@ -542,7 +541,7 @@ age_groups_stats
       <td>133</td>
       <td>2.905414</td>
       <td>386.42</td>
-      <td>1.694082</td>
+      <td>0.169013</td>
     </tr>
     <tr>
       <th>3</th>
@@ -550,7 +549,7 @@ age_groups_stats
       <td>584</td>
       <td>2.944349</td>
       <td>1719.50</td>
-      <td>7.538360</td>
+      <td>0.752079</td>
     </tr>
   </tbody>
 </table>
@@ -925,3 +924,30 @@ As final considerations:
 * You must include an exported markdown version of your Notebook called  `README.md` in your GitHub repository.  
 * You must include a written description of three observable trends based on the data. 
 * See [Example Solution](HeroesOfPymoli/HeroesOfPymoli_Example.pdf) for a reference on expected format. 
+
+# Report
+* Players are mostly male (more than 80%)
+* Players are mostly ove 20 years old (mor than 70%)
+* The number of purchases decreases in the extrimums of the price
+
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+
+min = purchase_data[["Price"]].min()
+max = purchase_data[["Price"]].max()
+d = max - min
+item_stats = round((purchase_data[["Price"]]-min) / d * 10)
+item_stats["Purchase Count"] = 1
+item_stats = item_stats.groupby("Price").count()
+item_stats = item_stats.reset_index()
+plt.xlabel("Price in scale from 0 to 10")
+plt.ylabel("Purchase count")
+plt.plot(item_stats["Price"], item_stats["Purchase Count"])
+plt.show()
+```
+
+
+![png](output_27_0.png)
+
